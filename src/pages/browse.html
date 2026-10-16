@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Browse · Netflix Clone</title><link rel="stylesheet" href="../css/styles.css"></head>
+<body><header class="header" id="nav"></header>
+<main><section class="hero" id="hero"></section><div id="rows"></div></main>
+<script type="module">
+import { byId, esc, featured, init, myList, posterCard, posterStyle, progress, renderNav, session, TITLES } from "../js/app.js";
+session.require(); renderNav("Home");
+if (await init(document.getElementById("rows"))) {
+const f = featured();
+document.getElementById("hero").style.cssText = posterStyle(f);
+document.getElementById("hero").innerHTML = `<h1>${esc(f.title)}</h1><p>${esc(f.synopsis)}</p>
+  <div class="btn-row"><a class="btn" href="player.html?id=${f.id}">▶ Play</a>
+  <button class="btn secondary" id="heroList"></button></div>`;
+const hl = document.getElementById("heroList");
+const syncHero = () => hl.textContent = myList.has(f.id) ? "✓ Added" : "+ My List";
+hl.onclick = () => { myList.toggle(f.id, syncHero); syncHero(); }; syncHero();
+const row = (name, items, prog) => `<section class="row"><h2>${name}</h2><div class="scroller">${items.map(t => posterCard(t, prog)).join("")}</div></section>`;
+let html = "";
+const started = progress.started().map(byId).filter(Boolean); // hidden until something is started
+if (started.length) html += row("Continue Watching", started, true);
+html += row("Trending Now", TITLES.slice().sort((a, b) => b.year - a.year).slice(0, 8));
+["Action", "Comedy", "Sci-Fi", "Drama"].forEach(g => html += row(g, TITLES.filter(t => t.genre === g)));
+document.getElementById("rows").innerHTML = html;
+}
+</script></body></html>

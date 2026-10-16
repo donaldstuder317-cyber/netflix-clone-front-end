@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Search · Netflix Clone</title><link rel="stylesheet" href="../css/styles.css"></head>
+<body><header class="header" id="nav"></header>
+<main><h1 style="margin-top:24px">Search</h1>
+<div class="filters">
+  <input type="search" id="q" placeholder="Titles, genres..." aria-label="Search titles">
+  <select id="genre" aria-label="Genre"></select></div>
+<div class="grid" id="results" aria-live="polite"></div></main>
+<script type="module">
+import { esc, GENRES, init, posterCard, renderNav, session, TITLES } from "../js/app.js";
+session.require(); renderNav("Search");
+const q = document.getElementById("q"), g = document.getElementById("genre"), out = document.getElementById("results");
+if (await init(out)) {
+g.innerHTML = GENRES.map(x => `<option>${x}</option>`).join("");
+function render() {
+  const term = q.value.trim().toLowerCase();
+  const res = TITLES.filter(t => (g.value === "All" || t.genre === g.value) &&
+    (!term || t.title.toLowerCase().includes(term) || t.genre.toLowerCase().includes(term)));
+  out.innerHTML = res.length ? res.map(t => posterCard(t)).join("") :
+    `<div class="empty">No titles match '${esc(q.value)}'. Try another search. <br><br><button class="btn secondary" id="clear">Clear search</button></div>`;
+  const c = document.getElementById("clear");
+  if (c) c.onclick = () => { q.value = ""; g.value = "All"; render(); q.focus(); };
+}
+q.oninput = g.onchange = render; render();
+}
+</script></body></html>

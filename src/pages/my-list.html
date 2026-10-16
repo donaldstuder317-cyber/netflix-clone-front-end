@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My List · Netflix Clone</title><link rel="stylesheet" href="../css/styles.css"></head>
+<body><header class="header" id="nav"></header>
+<main><h1 style="margin:24px 0 16px" id="h"></h1><div id="items"></div></main>
+<script type="module">
+import { byId, esc, init, myList, posterStyle, renderNav, session } from "../js/app.js";
+session.require(); renderNav("My List");
+function render() {
+  const items = myList.ids().map(byId).filter(Boolean);
+  document.getElementById("h").textContent = `My List (${items.length} title${items.length === 1 ? "" : "s"})`;
+  document.getElementById("items").innerHTML = items.length ? items.map(t => `<div class="list-item">
+    <div class="thumb" style="${posterStyle(t)}"></div>
+    <a class="info" href="title-detail.html?id=${t.id}">${esc(t.title)} ›</a>
+    <button class="btn secondary" data-id="${t.id}">Remove ✕</button></div>`).join("")
+    : `<div class="empty">Your list is empty. Tap + My List on any title.</div>`;
+  document.querySelectorAll("[data-id]").forEach(b => b.onclick = () => { myList.toggle(b.dataset.id, render); render(); });
+}
+if (await init(document.getElementById("items"))) render();
+</script></body></html>

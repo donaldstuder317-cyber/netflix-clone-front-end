@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign In · Netflix Clone</title><link rel="stylesheet" href="src/css/styles.css"></head>
+<body><div class="auth"><form id="form" novalidate>
+  <div class="logo">NETFLIX CLONE</div><h1>Sign In</h1>
+  <p class="error" id="err" role="alert" hidden></p>
+  <label>Email<input type="email" id="email" autocomplete="email" required></label>
+  <label>Password<input type="password" id="pw" autocomplete="current-password" required></label>
+  <button class="btn red" style="width:100%;justify-content:center">Sign In</button>
+  <p class="hint">Demo: any email, password <b>netflix</b>.</p>
+  <p class="hint">No account? <a href="#" id="signup" style="color:#fff;text-decoration:underline">Sign up</a></p>
+</form></div>
+<script type="module">
+import { session } from "./src/js/app.js";
+import { DEMO_PASSWORD } from "./src/js/data.js";
+if (session.user()) location.replace("src/pages/browse.html");
+const err = document.getElementById("err");
+const show = m => { err.textContent = m; err.hidden = false; };
+document.getElementById("signup").onclick = e => { e.preventDefault(); show("Sign up isn't available yet (no backend)."); };
+document.getElementById("form").onsubmit = e => {
+  e.preventDefault();
+  const email = document.getElementById("email").value.trim(), pw = document.getElementById("pw").value;
+  if (!/^\S+@\S+\.\S+$/.test(email) || !pw) return show("Enter a valid email and password.");
+  if (pw !== DEMO_PASSWORD) { document.getElementById("pw").value = ""; return show("Wrong email or password"); } // email stays filled
+  session.login(email); location.href = "src/pages/browse.html";
+};
+</script></body></html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Player · Netflix Clone</title><link rel="stylesheet" href="../css/styles.css"></head>
+<body>
+<div class="player-bar"><a class="btn secondary" id="back" href="browse.html">← Back</a><h2 id="name"></h2></div>
+<div class="video-wrap"><video id="v" preload="metadata" playsinline></video>
+  <div class="video-error" id="verr" hidden><p>Video failed to load</p><div><button class="btn red" id="retry">Retry</button></div></div></div>
+<div class="controls">
+  <button class="btn" id="pp" aria-label="Play or pause">▶</button>
+  <input type="range" id="seek" min="0" max="100" value="0" step="0.1" aria-label="Seek">
+  <span class="time" id="time">0:00 / 0:00</span>
+  <button class="btn secondary" id="mute">🔇 Mute</button>
+  <button class="btn secondary" id="fs">⛶ Fullscreen</button>
+</div>
+<script type="module">
+import { byId, fmtTime, init, progress, session, TITLES } from "../js/app.js";
+import { SAMPLE_VIDEO } from "../js/data.js";
+session.require();
+if (await init(document.querySelector(".video-wrap"))) {
+const t = byId(new URLSearchParams(location.search).get("id")) || TITLES[0];
+document.title = t.title + " · Player"; document.getElementById("name").textContent = t.title;
+document.getElementById("back").href = "title-detail.html?id=" + t.id;
+const v = document.getElementById("v"), $ = id => document.getElementById(id), err = $("verr");
+function load() { err.hidden = true; v.src = SAMPLE_VIDEO; v.load(); }
+v.addEventListener("loadedmetadata", () => { const p = progress.get(t.id); if (p && p < v.duration - 5) v.currentTime = p; update(); });
+v.addEventListener("error", () => err.hidden = false);
+$("retry").onclick = load;
+function update() {
+  $("seek").value = v.duration ? v.currentTime / v.duration * 100 : 0;
+  $("time").textContent = `${fmtTime(v.currentTime)} / ${fmtTime(v.duration)}`;
+  $("pp").textContent = v.paused ? "▶" : "❚❚";
+}
+let last = 0;
+v.addEventListener("timeupdate", () => { update(); if (Date.now() - last > 2000) { last = Date.now(); progress.set(t.id, v.currentTime); } });
+["play", "pause"].forEach(e => v.addEventListener(e, update));
+v.addEventListener("ended", () => progress.set(t.id, 0));
+addEventListener("pagehide", () => { if (v.currentTime) progress.setOnLeave(t.id, v.ended ? 0 : v.currentTime); }); // ← Back: progress saved
+$("pp").onclick = () => v.paused ? v.play() : v.pause();
+$("seek").oninput = e => { if (v.duration) v.currentTime = e.target.value / 100 * v.duration; };
+$("mute").onclick = () => { v.muted = !v.muted; $("mute").textContent = v.muted ? "🔊 Unmute" : "🔇 Mute"; };
+$("fs").onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.querySelector(".video-wrap").requestFullscreen();
+load();
+}
+</script></body></html>
