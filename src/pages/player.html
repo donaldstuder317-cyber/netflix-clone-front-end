@@ -15,7 +15,7 @@
 <script type="module">
 import { byId, fmtTime, init, progress, session, TITLES } from "../js/app.js";
 import { SAMPLE_VIDEO } from "../js/data.js";
-session.require();
+await session.require();
 if (await init(document.querySelector(".video-wrap"))) {
 const t = byId(new URLSearchParams(location.search).get("id")) || TITLES[0];
 document.title = t.title + " · Player"; document.getElementById("name").textContent = t.title;

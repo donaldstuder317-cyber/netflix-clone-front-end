@@ -6,22 +6,25 @@
   <p class="error" id="err" role="alert" hidden></p>
   <label>Email<input type="email" id="email" autocomplete="email" required></label>
   <label>Password<input type="password" id="pw" autocomplete="current-password" required></label>
-  <button class="btn red" style="width:100%;justify-content:center">Sign In</button>
-  <p class="hint">Demo: any email, password <b>netflix</b>.</p>
-  <p class="hint">No account? <a href="#" id="signup" style="color:#fff;text-decoration:underline">Sign up</a></p>
+  <button class="btn red" id="submit" style="width:100%;justify-content:center">Sign In</button>
+  <p class="hint">No account? <a href="src/pages/sign-up.html" id="signup" style="color:#fff;text-decoration:underline">Sign up</a></p>
 </form></div>
 <script type="module">
-import { session } from "./src/js/app.js";
-import { DEMO_PASSWORD } from "./src/js/data.js";
-if (session.user()) location.replace("src/pages/browse.html");
-const err = document.getElementById("err");
+import { credentialErrors, EMAIL_MSG, PASSWORD_MSG, session } from "./src/js/app.js";
+if (await session.active()) location.replace("src/pages/browse.html");
+const $ = id => document.getElementById(id), err = $("err"), email = $("email"), pw = $("pw"), btn = $("submit");
 const show = m => { err.textContent = m; err.hidden = false; };
-document.getElementById("signup").onclick = e => { e.preventDefault(); show("Sign up isn't available yet (no backend)."); };
-document.getElementById("form").onsubmit = e => {
-  e.preventDefault();
-  const email = document.getElementById("email").value.trim(), pw = document.getElementById("pw").value;
-  if (!/^\S+@\S+\.\S+$/.test(email) || !pw) return show("Enter a valid email and password.");
-  if (pw !== DEMO_PASSWORD) { document.getElementById("pw").value = ""; return show("Wrong email or password"); } // email stays filled
-  session.login(email); location.href = "src/pages/browse.html";
+$("form").onsubmit = async e => {
+  e.preventDefault(); err.hidden = true;
+  const errs = credentialErrors(email.value.trim(), pw.value);
+  email.setAttribute("aria-invalid", errs.includes(EMAIL_MSG));
+  pw.setAttribute("aria-invalid", errs.includes(PASSWORD_MSG));
+  if (errs.length) return show(errs.join(" ")); // inputs are kept
+  btn.disabled = true;
+  const { error } = await session.signIn(email.value.trim(), pw.value);
+  btn.disabled = false;
+  if (error?.code === "invalid_credentials") { pw.value = ""; return show("Wrong email or password"); } // email stays filled
+  if (error) return show("Couldn't sign in. Please try again.");
+  location.replace("src/pages/browse.html");
 };
 </script></body></html>

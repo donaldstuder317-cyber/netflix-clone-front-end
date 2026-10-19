@@ -5,7 +5,7 @@
 <main><section class="hero" id="hero"></section><div id="rows"></div></main>
 <script type="module">
 import { byId, esc, featured, init, myList, posterCard, posterStyle, progress, renderNav, session, TITLES } from "../js/app.js";
-session.require(); renderNav("Home");
+await session.require(); renderNav("Home");
 if (await init(document.getElementById("rows"))) {
 const f = featured();
 document.getElementById("hero").style.cssText = posterStyle(f);

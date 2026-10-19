@@ -11,6 +11,7 @@ export default defineConfig({
         myList: resolve(__dirname, 'src/pages/my-list.html'),
         player: resolve(__dirname, 'src/pages/player.html'),
         search: resolve(__dirname, 'src/pages/search.html'),
+        signUp: resolve(__dirname, 'src/pages/sign-up.html'),
         titleDetail: resolve(__dirname, 'src/pages/title-detail.html'),
       },
     },

@@ -5,7 +5,7 @@
 <main class="detail" id="main"></main>
 <script type="module">
 import { byId, esc, fmtRuntime, init, myList, posterCard, posterStyle, progress, renderNav, session, TITLES } from "../js/app.js";
-session.require(); renderNav("");
+await session.require(); renderNav("");
 const main = document.getElementById("main");
 const ok = await init(main);
 const t = ok && byId(new URLSearchParams(location.search).get("id"));

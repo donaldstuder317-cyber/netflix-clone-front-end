@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign Up · Netflix Clone</title><link rel="stylesheet" href="../css/styles.css"></head>
+<body><div class="auth"><form id="form" novalidate>
+  <div class="logo">NETFLIX CLONE</div><h1>Sign Up</h1>
+  <p class="error" id="err" role="alert" hidden></p>
+  <label>Email<input type="email" id="email" autocomplete="email" required></label>
+  <label>Password<input type="password" id="pw" autocomplete="new-password" required aria-describedby="pwhint"></label>
+  <label>Confirm password<input type="password" id="pw2" autocomplete="new-password" required></label>
+  <button class="btn red" id="submit" style="width:100%;justify-content:center">Sign Up</button>
+  <p class="hint" id="pwhint">Password: 8+ characters with an uppercase letter, a number and a symbol.</p>
+  <p class="hint">Already have an account? <a href="../../index.html" style="color:#fff;text-decoration:underline">Sign in</a></p>
+</form></div>
+<script type="module">
+import { credentialErrors, EMAIL_MSG, PASSWORD_MSG, session } from "../js/app.js";
+if (await session.active()) location.replace("browse.html");
+const $ = id => document.getElementById(id), err = $("err"), email = $("email"), pw = $("pw"), pw2 = $("pw2"), btn = $("submit");
+const show = m => { err.textContent = m; err.hidden = false; };
+$("form").onsubmit = async e => {
+  e.preventDefault(); err.hidden = true;
+  const errs = credentialErrors(email.value.trim(), pw.value);
+  if (!errs.length && pw.value !== pw2.value) errs.push("Passwords don't match.");
+  email.setAttribute("aria-invalid", errs.includes(EMAIL_MSG));
+  pw.setAttribute("aria-invalid", errs.includes(PASSWORD_MSG));
+  pw2.setAttribute("aria-invalid", errs.includes("Passwords don't match."));
+  if (errs.length) return show(errs.join(" ")); // inputs are kept
+  btn.disabled = true;
+  const { data, error } = await session.signUp(email.value.trim(), pw.value);
+  btn.disabled = false;
+  if (error) return show(error.code === "user_already_exists" ? "An account with this email already exists. Sign in instead."
+    : error.code === "weak_password" ? PASSWORD_MSG : "Couldn't create your account. Please try again.");
+  if (data.session) return location.replace("browse.html");
+  show("Check your email to confirm your account, then sign in."); // only if "Confirm email" is turned on in Supabase
+};
+</script></body></html>

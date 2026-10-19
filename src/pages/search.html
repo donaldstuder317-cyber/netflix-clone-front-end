@@ -9,7 +9,7 @@
 <div class="grid" id="results" aria-live="polite"></div></main>
 <script type="module">
 import { esc, GENRES, init, posterCard, renderNav, session, TITLES } from "../js/app.js";
-session.require(); renderNav("Search");
+await session.require(); renderNav("Search");
 const q = document.getElementById("q"), g = document.getElementById("genre"), out = document.getElementById("results");
 if (await init(out)) {
 g.innerHTML = GENRES.map(x => `<option>${x}</option>`).join("");
