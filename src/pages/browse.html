@@ -4,12 +4,12 @@
 <body><header class="header" id="nav"></header>
 <main><section class="hero" id="hero"></section><div id="rows"></div></main>
 <script type="module">
-import { byId, esc, featured, init, myList, posterCard, posterStyle, progress, renderNav, session, TITLES } from "../js/app.js";
+import { byId, esc, featured, fmtScore, init, myList, posterCard, posterStyle, progress, renderNav, session, TITLES } from "../js/app.js";
 await session.require(); renderNav("Home");
 if (await init(document.getElementById("rows"))) {
 const f = featured();
-document.getElementById("hero").style.cssText = posterStyle(f);
-document.getElementById("hero").innerHTML = `<h1>${esc(f.title)}</h1><p>${esc(f.synopsis)}</p>
+document.getElementById("hero").style.cssText = posterStyle(f, "backdrop");
+document.getElementById("hero").innerHTML = `<h1>${esc(f.title)}</h1>${f.score != null ? `<div class="meta">${fmtScore(f)} TMDB · ${f.year}</div>` : ""}<p>${esc(f.synopsis)}</p>
   <div class="btn-row"><a class="btn" href="player.html?id=${f.id}">▶ Play</a>
   <button class="btn secondary" id="heroList"></button></div>`;
 const hl = document.getElementById("heroList");

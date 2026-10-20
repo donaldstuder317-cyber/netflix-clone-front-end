@@ -10,21 +10,39 @@ export const GENRES = [];
 let listIds = [], progressMap = {};
 export const featured = () => TITLES.find(t => t.featured) || TITLES[0];
 
-const mapTitle = r => ({ id: r.id, title: r.title, year: r.release_year, rating: r.rating, runtime: r.runtime_minutes,
-  genre: r.genres?.name ?? "", cast: (r.title_cast || []).map(c => c.people?.name).filter(Boolean), synopsis: r.synopsis, featured: r.is_featured });
+const mapTitle = r => ({ id: r.id, tmdbId: r.tmdb_id, title: r.title, year: r.release_year, rating: r.rating, runtime: r.runtime_minutes,
+  genre: r.genres?.name ?? "", cast: (r.title_cast || []).map(c => c.people?.name).filter(Boolean), synopsis: r.synopsis, featured: r.is_featured,
+  score: null, poster: null, backdrop: null });
+
+// TMDB (via the `tmdb` edge function, which holds the API key): live title, details, rating and images
+// replace the stored values. Optional: if it fails the catalog still renders from Supabase with gradient posters.
+async function loadTmdb(titles) {
+  const ids = titles.map(t => t.tmdbId).filter(Boolean);
+  if (!ids.length) return;
+  const { data, error } = await supabase.functions.invoke(`tmdb?action=batch&ids=${ids.join(",")}`, { method: "GET" });
+  if (error) throw error;
+  const img = (size, path) => path ? `${data.image_base_url}${size}${path}` : null;
+  const byTmdb = new Map(data.movies.map(m => [m.tmdb_id, m]));
+  for (const t of titles) { const m = byTmdb.get(t.tmdbId); if (!m) continue;
+    Object.assign(t, { title: m.title || t.title, year: m.release_year ?? t.year, runtime: m.runtime_minutes ?? t.runtime,
+      synopsis: m.synopsis ?? t.synopsis, rating: m.certification || t.rating, cast: m.cast.length ? m.cast : t.cast,
+      score: m.vote_count ? m.vote_average : null, poster: img("w342", m.poster_path), backdrop: img("w1280", m.backdrop_path) }); }
+}
 
 let ready = null;
 async function load() {
   const must = ({ data, error }) => { if (error) throw error; return data; };
   const [titles, genres, list, prog] = await Promise.all([
     supabase.from("titles")
-      .select("id, title, release_year, rating, runtime_minutes, synopsis, is_featured, genres(name), title_cast(billing_order, people(name))")
+      .select("id, tmdb_id, title, release_year, rating, runtime_minutes, synopsis, is_featured, genres(name), title_cast(billing_order, people(name))")
       .order("id").order("billing_order", { referencedTable: "title_cast" }).then(must),
     supabase.from("genres").select("id, name").order("id").then(must),
     supabase.from("my_list").select("title_id").order("added_at").then(must),
     supabase.from("watch_progress").select("title_id, position_seconds").then(must)
   ]);
-  TITLES.splice(0, TITLES.length, ...titles.map(mapTitle));
+  const mapped = titles.map(mapTitle);
+  await loadTmdb(mapped).catch(e => console.warn("TMDB details unavailable; using stored catalog", e));
+  TITLES.splice(0, TITLES.length, ...mapped);
   GENRES.splice(0, GENRES.length, "All", ...genres.map(g => g.name));
   listIds = list.map(r => r.title_id);
   progressMap = Object.fromEntries(prog.map(r => [r.title_id, r.position_seconds]));
@@ -118,10 +136,20 @@ export const progress = {
 };
 
 export function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
-export function posterStyle(t) { const h = (t.id * 47) % 360; return `background:linear-gradient(135deg,hsl(${h},60%,30%),hsl(${(h + 50) % 360},70%,12%))`; }
+// kind "poster" (2:3 cards, thumbs) or "backdrop" (hero, detail header: faded into the page so the text stays readable).
+// Falls back to the generated gradient when TMDB has no image. Image URLs come from TMDB paths, so no escaping beyond quotes is needed.
+export function posterStyle(t, kind = "poster") {
+  const url = kind === "backdrop" ? t.backdrop || t.poster : t.poster;
+  if (url) return kind === "backdrop"
+    ? `background:linear-gradient(to top,var(--bg) 4%,#14141499 40%,#0000 70%),url('${url}') center/cover no-repeat`
+    : `background:#222 url('${url}') center/cover no-repeat`;
+  const h = (t.id * 47) % 360; return `background:linear-gradient(135deg,hsl(${h},60%,30%),hsl(${(h + 50) % 360},70%,12%))`;
+}
+export const fmtScore = t => t.score == null ? "" : `★ ${t.score.toFixed(1)}`;
 export function posterCard(t, withProgress) {
   const pct = withProgress ? Math.min(100, progress.get(t.id) / (t.runtime * 60) * 100) : 0;
-  return `<a class="poster" href="title-detail.html?id=${t.id}" style="${posterStyle(t)}" aria-label="${esc(t.title)}">
+  return `<a class="poster${t.poster ? " has-img" : ""}" href="title-detail.html?id=${t.id}" style="${posterStyle(t)}" aria-label="${esc(t.title)}">
+    ${t.score != null ? `<span class="score" aria-label="TMDB rating ${t.score.toFixed(1)} out of 10">${fmtScore(t)}</span>` : ""}
     <span class="poster-title">${esc(t.title)}</span>
     ${withProgress ? `<span class="bar"><i style="width:${pct}%"></i></span>` : ""}</a>`;
 }

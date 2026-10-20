@@ -4,7 +4,7 @@
 <body><header class="header" id="nav"></header>
 <main class="detail" id="main"></main>
 <script type="module">
-import { byId, esc, fmtRuntime, init, myList, posterCard, posterStyle, progress, renderNav, session, TITLES } from "../js/app.js";
+import { byId, esc, fmtRuntime, fmtScore, init, myList, posterCard, posterStyle, progress, renderNav, session, TITLES } from "../js/app.js";
 await session.require(); renderNav("");
 const main = document.getElementById("main");
 const ok = await init(main);
@@ -14,8 +14,8 @@ else if (t) {
   document.title = t.title + " · Netflix Clone";
   const more = TITLES.filter(x => x.genre === t.genre && x.id !== t.id).slice(0, 3);
   const resume = progress.get(t.id) > 0;
-  main.innerHTML = `<div class="backdrop" style="${posterStyle(t)}"><h1>${esc(t.title)}</h1></div>
-    <div class="meta">${t.year} · ${t.rating} · ${fmtRuntime(t.runtime)} · ${t.genre}</div>
+  main.innerHTML = `<div class="backdrop" style="${posterStyle(t, "backdrop")}"><h1>${esc(t.title)}</h1></div>
+    <div class="meta">${t.score != null ? `${fmtScore(t)}/10 TMDB · ` : ""}${t.year} · ${t.rating} · ${fmtRuntime(t.runtime)} · ${t.genre}</div>
     <p>${esc(t.synopsis)}</p><p class="meta">Cast: ${t.cast.map(esc).join(", ")}</p>
     <div class="btn-row"><a class="btn" href="player.html?id=${t.id}">▶ ${resume ? "Resume" : "Play"}</a>
     <button class="btn secondary" id="list"></button></div>
