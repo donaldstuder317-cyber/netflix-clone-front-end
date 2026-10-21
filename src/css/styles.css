@@ -70,3 +70,23 @@ video { width:100%; height:100%; display:block; }
 .controls .btn { padding:8px 14px; }
 .time { color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
 [hidden] { display:none !important; }
+/* Pinned donate logo (lower-right) */
+.donate-fab { position:fixed; right:16px; bottom:16px; z-index:20; width:56px; height:56px; display:grid; place-items:center; transition:transform .2s; }
+.donate-fab img { width:48px; height:auto; object-fit:contain; }
+.donate-fab:hover { transform:scale(1.06); }
+@media (prefers-reduced-motion:reduce) { .donate-fab { transition:none; } .donate-fab:hover { transform:none; } }
+/* Donate page */
+.donate { max-width:480px; margin:0 auto; padding-top:24px; }
+.donate h1 { font-size:clamp(1.6rem,5vw,2.2rem); margin-bottom:8px; }
+.donate .hint { color:var(--muted); margin:0 0 24px; }
+.donate fieldset { border:0; padding:0; margin:0 0 20px; }
+.donate legend { padding:0; margin-bottom:10px; font-weight:700; }
+.donate-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+.donate-grid .btn { justify-content:center; min-height:44px; }
+.donate-grid .btn[aria-pressed="true"] { outline:2px solid var(--red); outline-offset:1px; }
+.donate-label { display:block; margin-bottom:20px; color:var(--muted); font-size:.9rem; }
+.donate-label input, .donate-card { display:block; width:100%; margin-top:6px; min-height:44px; padding:12px; border:1px solid var(--line); border-radius:4px; background:var(--panel); color:var(--text); font:inherit; }
+.donate .error { border:1px dashed var(--red); color:#ff6b6b; padding:12px; border-radius:4px; margin:0 0 16px; }
+.donate-submit { width:100%; justify-content:center; min-height:48px; }
+.donate-result { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:24px; }
+.donate-result h2 { margin-bottom:8px; }

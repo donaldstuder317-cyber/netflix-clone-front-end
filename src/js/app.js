@@ -160,4 +160,10 @@ export function renderNav(active) {
     <span class="who" id="who" title="Signed in as ${esc(user?.email ?? "")}">${esc(user?.email ?? "")}</span>
     <button class="link" id="signout">Sign out</button></nav>`;
   document.getElementById("signout").onclick = session.logout;
+  if (!document.getElementById("donate-fab")) { // pinned donate logo, lower-right (not used on the player page)
+    const a = document.createElement("a");
+    a.id = "donate-fab"; a.className = "donate-fab"; a.href = "/donate"; a.setAttribute("aria-label", "Donate");
+    a.innerHTML = `<img src="/netflix_logo.png" alt="" width="32" height="32">`;
+    document.body.append(a);
+  }
 }
