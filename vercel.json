@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/donate", "destination": "/src/pages/donate.html" }
+  ]
+}
